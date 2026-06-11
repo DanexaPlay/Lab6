@@ -1,0 +1,32 @@
+info
+help
+show
+add
+2
+30 30
+20
+2
+true
+bad
+normal
+xd
+1900
+2
+2
+average_of_number_of_rooms
+reorder
+execute_script script.txt
+update 1
+name
+30 30
+20
+2
+true
+bad
+normal
+xd
+1900
+2
+2
+remove_by_id 2
+show
