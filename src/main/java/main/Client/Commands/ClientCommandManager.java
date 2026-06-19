@@ -22,6 +22,8 @@ public class ClientCommandManager {
         add(new RemoveByIdCommand());
         add(new UpdateCommand());
         add(new FilterByNewCommand());
+        add(new LoginCommand());
+        add(new RegisterCommand());
     }
 
     private void add(ClientCommand command) {

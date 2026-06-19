@@ -1,10 +1,9 @@
 package main.Server.Network;
 
-import main.Common.CommandRequest;
-import main.Common.CommandResponse;
-import main.Common.FrameManager;
-import main.Common.SerializationManager;
+import main.Common.*;
 import main.Server.Commands.CommandProcessor;
+import main.Server.Commands.LoginCommand;
+import main.Server.Commands.RegisterCommand;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -133,11 +132,16 @@ public class Server {
             if (!(object instanceof CommandRequest)) {
                 connection.getAnswers().add(FrameManager.toBuffer(CommandResponse.fail("Неверный запрос!")));
             } else {
-                List<CommandResponse> responses = commandProcessor.process((CommandRequest) object);
-                for (CommandResponse response : responses) {
-                    connection.getAnswers().add(FrameManager.toBuffer(response));
+                if (connection.getAuthorisation() || ((CommandRequest) object).getType() == CommandType.LOGIN|| ((CommandRequest) object).getType() == CommandType.REGISTER) {
+                    List<CommandResponse> responses = commandProcessor.process((CommandRequest) object);
+                    for (CommandResponse response : responses) {
+                        connection.getAnswers().add(FrameManager.toBuffer(response));
+                    }
                 }
-            }
+                else {
+                    connection.getAnswers().add(FrameManager.toBuffer(CommandResponse.fail("Вы не авторизованы! Используйте login или register")));
+                    }
+                }
             key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
         } catch (Exception e) {
             logger.error("Ошибка обработки запроса", e);

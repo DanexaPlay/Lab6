@@ -8,6 +8,13 @@ public class ClientConnection {
     private ByteBuffer lengthBuffer = ByteBuffer.allocate(Integer.BYTES);
     private ByteBuffer dataBuffer;
     private Queue<ByteBuffer> answers = new ArrayDeque<>();
+    private boolean isAuthorised = false;
+    private String username;
+    private String password;
+
+    public boolean getAuthorisation() {
+        return isAuthorised;
+    }
 
     public ByteBuffer getLengthBuffer() {
         return lengthBuffer;

@@ -24,5 +24,7 @@ public enum CommandType implements Serializable {
     STATUS,
     SET_HOST,
     SET_PORT,
-    PING
+    PING,
+    LOGIN,
+    REGISTER
 }

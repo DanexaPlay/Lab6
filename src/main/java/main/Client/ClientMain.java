@@ -4,7 +4,7 @@ import main.Client.Network.NetworkClient;
 
 public class ClientMain {
     public static void main(String[] args) {
-        String host = readStringArg(args, "--host", "se.ifmo.ru");
+        String host = readStringArg(args, "--host", "localhost");
         int port = readIntArg(args, "--port", 8731);
 
         NetworkClient networkClient = new NetworkClient(host, port);

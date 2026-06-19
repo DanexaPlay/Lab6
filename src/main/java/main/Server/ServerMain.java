@@ -1,6 +1,7 @@
 package main.Server;
 
 import main.Server.Commands.CommandProcessor;
+import main.Server.DatabaseManagment.DatabaseManager;
 import main.Server.FileManagment.FileManager;
 import main.Server.Network.Server;
 import org.apache.logging.log4j.LogManager;
@@ -18,8 +19,9 @@ public class ServerMain {
         String host = readStringArg(args, "--host", "0.0.0.0");
         int port = readIntArg(args, "--port", 8731);
         FileManager fileManager = new FileManager();
-        CollectionManager collectionManager = new CollectionManager(fileManager.read_from_file());
-        CommandProcessor commandProcessor = new CommandProcessor(collectionManager, fileManager);
+        DatabaseManager databaseManager = new DatabaseManager();
+        CollectionManager collectionManager = new CollectionManager(fileManager.read_from_file());  //
+        CommandProcessor commandProcessor = new CommandProcessor(collectionManager, databaseManager);
         Server server = new Server(host, port, commandProcessor);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
