@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 public class ClientApp {
     private static final Logger logger = LogManager.getLogger(ClientApp.class);
     private final NetworkClient networkClient;
-    private final ClientCommandManager commandManager = new ClientCommandManager();
+    private final ClientCommandManager commandManager;
     private Scanner input = new Scanner(System.in);
     private volatile boolean running = true;
     private boolean scriptMode = false;
@@ -35,6 +35,7 @@ public class ClientApp {
 
     public ClientApp(NetworkClient networkClient) {
         this.networkClient = networkClient;
+        this.commandManager = new ClientCommandManager(networkClient);
         fillLocalCommands();
     }
 
@@ -416,5 +417,7 @@ public class ClientApp {
         System.out.println("set_port port : изменить порт сервера");
         System.out.println("helios : поставить host se.ifmo.ru");
         System.out.println("helios port : поставить host se.ifmo.ru и указанный порт");
+        System.out.println("login username password : авторизоваться");
+        System.out.println("register username password : зарегистрироваться");
     }
 }

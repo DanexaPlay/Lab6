@@ -1,5 +1,6 @@
 package main.Server;
 
+import main.BasicClasses.Flat;
 import main.Server.Commands.CommandProcessor;
 import main.Server.DatabaseManagment.DatabaseManager;
 import main.Server.FileManagment.FileManager;
@@ -7,10 +8,7 @@ import main.Server.Network.Server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 
 public class ServerMain {
     private static final Logger logger = LogManager.getLogger(ServerMain.class);
@@ -18,9 +16,18 @@ public class ServerMain {
     public static void main(String[] args) {
         String host = readStringArg(args, "--host", "0.0.0.0");
         int port = readIntArg(args, "--port", 8731);
-        FileManager fileManager = new FileManager();
         DatabaseManager databaseManager = new DatabaseManager();
-        CollectionManager collectionManager = new CollectionManager(fileManager.read_from_file());  //
+
+        Vector<Flat> initialCollection;
+
+        if (databaseManager.isConnected()) {
+            initialCollection = databaseManager.read_from_database();
+        } else {
+            logger.warn("База данных недоступна, коллекция будет создана пустой");
+            initialCollection = new Vector<>();
+        }
+
+        CollectionManager collectionManager = new CollectionManager(initialCollection);
         CommandProcessor commandProcessor = new CommandProcessor(collectionManager, databaseManager);
         Server server = new Server(host, port, commandProcessor);
 

@@ -31,8 +31,8 @@ public class CommandProcessor {
         add(new HelpCommand());
         add(new InfoCommand(collectionManager));
         add(new ShowCommand(collectionManager));
-        add(new AddCommand(collectionManager));
-        add(new UpdateCommand(collectionManager));
+        add(new AddCommand(collectionManager, databaseManager));
+        add(new UpdateCommand(collectionManager, databaseManager));
         add(new RemoveByIdCommand(collectionManager));
         add(new ClearCommand(collectionManager));
         add(new RemoveLastCommand(collectionManager));
@@ -43,6 +43,7 @@ public class CommandProcessor {
         add(new FilterByNewCommand(collectionManager));
         add(new SaveCommand());
         add(new ExitCommand());
+        add(new CheckUpdatePermissionCommand(databaseManager));
         add(new ExecuteScriptCommand(this));
         add(new PingCommand());
         add(new LoginCommand(this.databaseManager));
@@ -55,8 +56,8 @@ public class CommandProcessor {
         add(new HelpCommand());
         add(new InfoCommand(collectionManager));
         add(new ShowCommand(collectionManager));
-        add(new AddCommand(collectionManager));
-        add(new UpdateCommand(collectionManager));
+        add(new AddCommand(collectionManager, databaseManager));
+        add(new UpdateCommand(collectionManager, databaseManager));
         add(new RemoveByIdCommand(collectionManager));
         add(new ClearCommand(collectionManager));
         add(new RemoveLastCommand(collectionManager));
@@ -65,6 +66,7 @@ public class CommandProcessor {
         add(new RemoveLowerCommand(collectionManager));
         add(new CountGreaterThanHouseCommand(collectionManager));
         add(new FilterByNewCommand(collectionManager));
+        add(new CheckUpdatePermissionCommand(databaseManager));
         add(new SaveCommand());
         add(new ExitCommand());
         add(new ExecuteScriptCommand(this));
@@ -78,37 +80,45 @@ public class CommandProcessor {
         commands.put(command.getType(), command);
     }
 
+    private boolean isPublicCommand(CommandType type) {
+        return type == CommandType.LOGIN
+                || type == CommandType.REGISTER
+                || type == CommandType.PING;
+    }
+
     public List<CommandResponse> process(CommandRequest request) {
-        try {
-            if (request == null || request.getType() == null) {
-                return List.of(CommandResponse.fail("Команда не передана!"));
-            }
-            ServerCommand command = commands.get(request.getType());
-            logger.info("Получена команда: {}", request.getType());
-            if (command == null) {
-                return List.of(CommandResponse.fail("Команда не существует или не заданы аргументы"));
-            }
-            return command.execute(request);
-        } catch (ClassCastException e) {
-            logger.warn("Неверный аргумент команды", e);
-            return List.of(CommandResponse.fail("Неверный аргумент команды!"));
-        } catch (IllegalArgumentException e) {
-            logger.warn("Команда не выполнена", e);
-            return List.of(CommandResponse.fail(e.getMessage() == null ? "Команда не выполнена." : e.getMessage()));
+        if (request == null || request.getType() == null) {
+            return List.of(CommandResponse.fail("Некорректный запрос!"));
         }
-        catch (Exception e) {
-            logger.error("Ошибка выполнения команды", e);
-            return List.of(CommandResponse.fail("Команда не выполнена. Проверьте данные."));
+
+        CommandType type = request.getType();
+
+        ServerCommand command = commands.get(type);
+
+        if (command == null) {
+            return List.of(CommandResponse.fail("Неизвестная команда!"));
         }
+
+        if (!isPublicCommand(type)) {
+            if (!request.hasCredentials()) {
+                return List.of(CommandResponse.fail("Для выполнения команды нужно авторизоваться!"));
+            }
+
+            if (!databaseManager.checkPassword(
+                    request.getUsername(),
+                    request.getHash_password()
+            )) {
+                return List.of(CommandResponse.fail("Неверные данные авторизации!"));
+            }
+        }
+
+        return command.execute(request);
     }
 
     public void save() {
-        if (this.fileManager != null) {
-            logger.info("Сохранение коллекции");
-            fileManager.write_to_file(collectionManager.getCollection());
+        if (!databaseManager.isConnected()) {
+            return;
         }
-        else {
-            logger.info("Коллекция не сохранена, поскольку режим записи в файл отключён");
-        }
+        databaseManager.saveCollection(collectionManager.getCollection());
     }
 }

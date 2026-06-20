@@ -36,8 +36,9 @@ public class CollectionManager {
                 .collect(Collectors.toList());
     }
 
-    public Flat add(FlatData data) {
+    public Flat add(FlatData data, Long id) {
         Flat f1 = flatFactory.create(data);
+        f1.setId(id);
         collection.add(f1);
         return f1;
     }
@@ -47,6 +48,17 @@ public class CollectionManager {
         Flat newFlat = flatFactory.create(data);
         newFlat.setId(id);
         collection.set(collection.indexOf(oldFlat), newFlat);
+    }
+
+    public boolean replaceById(long id, Flat updatedFlat) {
+        for (int i = 0; i < collection.size(); i++) {
+            if (collection.get(i).getId() == id) {
+                collection.set(i, updatedFlat);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void remove_by_id(long id) {

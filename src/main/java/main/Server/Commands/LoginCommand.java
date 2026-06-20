@@ -11,7 +11,6 @@ import java.util.List;
 
 public class LoginCommand implements ServerCommand {
     private final DatabaseManager databaseManager;
-    private ClientConnection clientConnection = null;
 
     public LoginCommand(DatabaseManager databaseManager) {this.databaseManager=databaseManager;}
 
@@ -20,6 +19,9 @@ public class LoginCommand implements ServerCommand {
     }
 
     public List<CommandResponse> execute(CommandRequest request) {
+        if (!databaseManager.isConnected()) {
+            return List.of(CommandResponse.fail("База данных недоступна"));
+        }
         LoginData data = (LoginData) request.getArgument();
         try {
             databaseManager.login(data);

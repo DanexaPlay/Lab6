@@ -10,7 +10,6 @@ import java.util.List;
 
 public class RegisterCommand implements ServerCommand {
     private final DatabaseManager databaseManager;
-    private ClientConnection clientConnection = null;
 
     public RegisterCommand(DatabaseManager databaseManager) {this.databaseManager=databaseManager;}
 
@@ -19,6 +18,9 @@ public class RegisterCommand implements ServerCommand {
     }
 
     public List<CommandResponse> execute(CommandRequest request) {
+        if (!databaseManager.isConnected()) {
+            return List.of(CommandResponse.fail("База данных недоступна"));
+        }
         RegisterData data = (RegisterData) request.getArgument();
         try {
             databaseManager.register(data);

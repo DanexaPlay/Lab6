@@ -1,10 +1,6 @@
 package main.Client.Network;
 
-import main.Common.CommandRequest;
-import main.Common.CommandResponse;
-import main.Common.CommandType;
-import main.Common.FrameManager;
-import main.Common.SerializationManager;
+import main.Common.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -23,10 +19,124 @@ public class NetworkClient {
     private Selector selector;
     private boolean connected = false;
     private ByteBuffer outputBuffer;
+    private String username;
+    private String passwordHash;
 
     public NetworkClient(String host, int port) {
         this.host = host;
         this.port = port;
+    }
+
+    public void setCredentials(String username, String passwordHash) {
+        this.username = username;
+        this.passwordHash = passwordHash;
+    }
+
+    public void clearCredentials() {
+        this.username = null;
+        this.passwordHash = null;
+    }
+
+    public boolean isAuthorized() {
+        return username != null
+                && !username.isBlank()
+                && passwordHash!= null
+                && !passwordHash.isBlank();
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    private boolean isPublicCommand(CommandType type) {
+        return type == CommandType.LOGIN
+                || type == CommandType.REGISTER
+                || type == CommandType.PING;
+    }
+
+    private boolean hasCredentials() {
+        return username != null
+                && !username.isBlank()
+                && passwordHash != null
+                && !passwordHash.isBlank();
+    }
+
+    private CommandRequest attachCredentials(CommandRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        if (isPublicCommand(request.getType())) {
+            return request;
+        }
+
+        if (!hasCredentials()) {
+            return request;
+        }
+
+        if (request.getType() == CommandType.EXECUTE_SCRIPT) {
+            return attachCredentialsToScript(request);
+        }
+
+        return request.withCredentials(username, passwordHash);
+    }
+
+    private CommandRequest attachCredentialsToScript(CommandRequest request) {
+        Object argument = request.getArgument();
+
+        if (!(argument instanceof List<?> list)) {
+            return request.withCredentials(username, passwordHash);
+        }
+
+        List<CommandRequest> updatedRequests = new ArrayList<>();
+
+        for (Object item : list) {
+            if (item instanceof CommandRequest commandRequest) {
+                updatedRequests.add(attachCredentials(commandRequest));
+            }
+        }
+
+        return new CommandRequest(
+                request.getType(),
+                updatedRequests,
+                username,
+                passwordHash
+        );
+    }
+
+    private void saveCredentialsIfAuthSuccess(
+            CommandRequest request,
+            List<CommandResponse> responses
+    ) {
+        if (request == null || responses == null || responses.isEmpty()) {
+            return;
+        }
+
+        if (request.getType() != CommandType.LOGIN
+                && request.getType() != CommandType.REGISTER) {
+            return;
+        }
+
+        boolean success = responses.stream().anyMatch(CommandResponse::isSuccess);
+
+        if (!success) {
+            return;
+        }
+
+        Object argument = request.getArgument();
+
+        if (argument instanceof LoginData loginData) {
+            setCredentials(loginData.getUsername(), loginData.getPassword());
+            return;
+        }
+
+        if (argument instanceof RegisterData registerData) {
+            setCredentials(registerData.getUsername(), registerData.getPassword());
+        }
     }
 
     public synchronized boolean connect() {
@@ -63,6 +173,7 @@ public class NetworkClient {
     }
 
     private void prepareRequest(CommandRequest request) throws IOException {
+        CommandRequest preparedRequest = addCredentialsIfNeeded(request);
         byte[] data = SerializationManager.serialize(request);
 
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES + data.length);
@@ -71,6 +182,26 @@ public class NetworkClient {
         buffer.flip();
 
         outputBuffer = buffer;
+    }
+
+    private CommandRequest addCredentialsIfNeeded(CommandRequest request) {
+        if (request == null || request.getType() == null) {
+            return request;
+        }
+
+        CommandType type = request.getType();
+
+        if (type == CommandType.LOGIN
+                || type == CommandType.REGISTER
+                || type == CommandType.PING) {
+            return request;
+        }
+
+        if (!isAuthorized()) {
+            return request;
+        }
+
+        return request.withCredentials(username, passwordHash);
     }
 
     private boolean writeRequest(SocketChannel channel) throws IOException {
@@ -103,7 +234,8 @@ public class NetworkClient {
                 return List.of();
             }
 
-            prepareRequest(request);
+            CommandRequest requestToSend = attachCredentials(request);
+            prepareRequest(requestToSend);
             key.interestOps(SelectionKey.OP_WRITE);
 
             long lastAction = System.currentTimeMillis();
@@ -139,8 +271,11 @@ public class NetworkClient {
                     return List.of();
                 }
             }
+            List<CommandResponse> responses = readResponses();
 
-            return readResponses();
+            saveCredentialsIfAuthSuccess(request, responses);
+
+            return responses;
         } catch (IOException e) {
             close();
             return List.of();

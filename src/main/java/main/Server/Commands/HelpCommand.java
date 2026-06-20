@@ -34,7 +34,9 @@ public class HelpCommand implements ServerCommand {
                 "status : показать адрес, порт и состояние соединения",
                 "set_host host : изменить адрес сервера",
                 "set_port port : изменить порт сервера",
-                "helios : поставить host helios.cs.ifmo.ru");
+                "helios : поставить host helios.cs.ifmo.ru",
+                "login username password : авторизоваться",
+                "register username password : зарегистрироваться");
         return List.of(CommandResponse.ok(text));
     }
 }

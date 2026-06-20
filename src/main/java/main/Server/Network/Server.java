@@ -132,7 +132,7 @@ public class Server {
             if (!(object instanceof CommandRequest)) {
                 connection.getAnswers().add(FrameManager.toBuffer(CommandResponse.fail("Неверный запрос!")));
             } else {
-                if (connection.getAuthorisation() || ((CommandRequest) object).getType() == CommandType.LOGIN|| ((CommandRequest) object).getType() == CommandType.REGISTER) {
+                if (((CommandRequest) object).hasCredentials() || ((CommandRequest) object).getType() == CommandType.LOGIN|| ((CommandRequest) object).getType() == CommandType.REGISTER || ((CommandRequest) object).getType() == CommandType.PING) {
                     List<CommandResponse> responses = commandProcessor.process((CommandRequest) object);
                     for (CommandResponse response : responses) {
                         connection.getAnswers().add(FrameManager.toBuffer(response));

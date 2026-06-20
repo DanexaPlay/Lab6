@@ -4,9 +4,11 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
 
+//idшники и прочие приколы для дб менеджера
+
 public class Flat implements Comparable<Flat>, Serializable {
     private static final long serialVersionUID = 1L;
-
+    private String authorUsername;
     private Long id;
     private String name;
     private Coordinates coordinates;
@@ -18,10 +20,8 @@ public class Flat implements Comparable<Flat>, Serializable {
     private Transport transport;
     private House house;
 
-    static Long idCount = 0L;
-
-    static {
-        idCount += 1;
+    public void setAuthorUsername(String username) {
+        this.authorUsername = username;
     }
 
     public House getHouse() {
@@ -80,7 +80,6 @@ public class Flat implements Comparable<Flat>, Serializable {
         if (flatBuilder.numberOfRooms <= 0) {
             throw new IllegalArgumentException("Количество комнат должно быть больше 0!");
         }
-        id = ++idCount;
         this.name = flatBuilder.name;
         this.coordinates = flatBuilder.coordinates;
         creationDate = LocalDate.now();
@@ -95,6 +94,7 @@ public class Flat implements Comparable<Flat>, Serializable {
     public String toString() {
         String s = "";
         s += "id: " + id.toString() + "\n";
+        s += "author: " + authorUsername + "\n";
         s += "name: " + name + "\n";
         s += "coordinates: " + coordinates.toString() + "\n";
         s += "creation date: " + creationDate.toString() + "\n";
@@ -123,11 +123,18 @@ public class Flat implements Comparable<Flat>, Serializable {
 
     public void setId(long id) {
         this.id = id;
-        idCount--;
+    }
+
+    public void setCreationDate(LocalDate date) {
+        this.creationDate = date;
     }
 
     @Override
     public int compareTo(Flat o) {
         return (int) (this.getId() - o.getId());
+    }
+
+    public String getAuthorUsername() {
+        return authorUsername;
     }
 }
