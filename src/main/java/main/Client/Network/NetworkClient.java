@@ -174,13 +174,11 @@ public class NetworkClient {
 
     private void prepareRequest(CommandRequest request) throws IOException {
         CommandRequest preparedRequest = addCredentialsIfNeeded(request);
-        byte[] data = SerializationManager.serialize(request);
-
+        byte[] data = SerializationManager.serialize(preparedRequest);
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES + data.length);
         buffer.putInt(data.length);
         buffer.put(data);
         buffer.flip();
-
         outputBuffer = buffer;
     }
 

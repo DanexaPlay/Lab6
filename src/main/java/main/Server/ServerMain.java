@@ -34,12 +34,12 @@ public class ServerMain {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Завершение JVM, сохранение коллекции");
             commandProcessor.save();
+            server.shutdown();
         }));
 
         Thread consoleThread = new Thread(() -> serverConsole(server, commandProcessor), "server-console");
         consoleThread.setDaemon(true);
         consoleThread.start();
-
         server.start();
     }
 

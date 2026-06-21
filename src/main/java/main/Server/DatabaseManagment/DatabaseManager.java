@@ -12,11 +12,9 @@ import org.apache.logging.log4j.Logger;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
+import java.sql.Date;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Properties;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 
 public class DatabaseManager {
     private static final Logger logger = LogManager.getLogger(DatabaseManager.class);
@@ -112,6 +110,21 @@ public class DatabaseManager {
         }
     }
 
+    private boolean isMissingSchemaException(SQLException e) {
+        String state = e.getSQLState();
+        return "42P01".equals(state) || "42704".equals(state);
+    }
+
+    private boolean recoverSchemaIfNeeded(SQLException e) {
+        if (!isMissingSchemaException(e)) {
+            return false;
+        }
+        logger.warn("Схема БД отсутствует или повреждена. Пересоздаю таблицы...");
+        initializeTables();
+        logger.warn("Схема БД пересоздана. Команду нужно повторить.");
+        return true;
+    }
+
     public boolean isConnected() {
         try {
             return connection != null && !connection.isClosed();
@@ -120,7 +133,7 @@ public class DatabaseManager {
         }
     }
 
-    public boolean checkUsernameAvailability(String username) {
+    public synchronized boolean checkUsernameAvailability(String username) {
         String query = "SELECT 1 FROM USERS WHERE username = ?";
         PreparedStatement st = null;
         try {
@@ -137,29 +150,47 @@ public class DatabaseManager {
         return true;
     }
 
-    public boolean checkPassword(String username, String password) {
-        try {
-            if (!isConnected()) {
-                return false;
-            }
+    public synchronized boolean checkPassword(String username, String password) {
+        if (!isConnected()) {
+            return false;
+        }
 
-            if (username == null || username.isBlank()
-                    || password == null || password.isBlank()) {
+        if (username == null || username.isBlank()
+                || password == null || password.isBlank()) {
+            return false;
+        }
+
+        String query = """
+            SELECT hash_password, salt
+            FROM users
+            WHERE username = ?
+            """;
+
+        try (PreparedStatement st = connection.prepareStatement(query)) {
+            st.setString(1, username);
+
+            try (ResultSet resultSet = st.executeQuery()) {
+                if (!resultSet.next()) {
+                    return false;
+                }
+
+                String storedHash = resultSet.getString("hash_password");
+                String salt = resultSet.getString("salt");
+
+                String calculatedHash = Encryption.encryptString(password + salt);
+
+                return storedHash.equals(calculatedHash);
+            }
+        } catch (SQLException e) {
+            if (recoverSchemaIfNeeded(e)) {
                 return false;
             }
-            String query = "SELECT username, hash_password FROM users WHERE username = ?";
-            PreparedStatement st = connection.prepareStatement(query);
-            st.setString(1, username);
-            ResultSet resultSet = st.executeQuery();
-            resultSet.next();
-            return resultSet.getString(1).equals(username) && resultSet.getString(2).equals(password);
-        } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    public boolean isFlatOwner(long id, String username) {
+    public synchronized boolean isFlatOwner(long id, String username) {
         if (!isConnected()) {
             return false;
         }
@@ -187,7 +218,7 @@ public class DatabaseManager {
         }
     }
 
-    public void register(RegisterData registerData) throws SQLException, UserAlreadyExistsException {
+    public synchronized void register(RegisterData registerData) throws SQLException, UserAlreadyExistsException {
         String username = registerData.getUsername();
         String password = registerData.getPassword();
         if (!checkUsernameAvailability(username)) {
@@ -206,27 +237,19 @@ public class DatabaseManager {
         logger.info("Пользователь " + username + " зарегистрировался");
     }
 
-    public void login(LoginData loginData) throws SQLException {
+    public synchronized void login(LoginData loginData) throws SQLException {
         String username = loginData.getUsername();
         String password = loginData.getPassword();
         if (checkUsernameAvailability(username)) {
             throw new UserNotExistsException(username);
         }
-        String query = "SELECT salt FROM users WHERE username = ?";
-        PreparedStatement st = connection.prepareStatement(query);
-        st.setString(1, username);
-        ResultSet resultSet = st.executeQuery();
-        resultSet.next();
-        String salt = resultSet.getString(1);
-        password += salt;
-        password = Encryption.encryptString(password);
         if (!checkPassword(username, password)) {
             throw new InvalidCredentialsException();
         }
         logger.info("Пользователь " + username + " авторизовался");
     }
 
-    public long addFlat(FlatData data, String username) {
+    public synchronized long addFlat(FlatData data, String username) {
         try {
             Flat flat = flatFactory.create(data);
             String query = """
@@ -269,12 +292,46 @@ public class DatabaseManager {
             throw new SQLException("База данных не вернула id после добавления Flat");
 
         } catch (SQLException e) {
+            if (recoverSchemaIfNeeded(e)) {
+                return -1;
+            }
             e.printStackTrace();
             return -1;
         }
     }
 
-    public Vector<Flat> read_from_database() {
+    public synchronized boolean removeFlatById(long id, String username) {
+        if (!isConnected()) {
+            logger.warn("Удаление невозможно: нет подключения к базе данных");
+            return false;
+        }
+
+        if (username == null || username.isBlank()) {
+            return false;
+        }
+
+        String query = """
+            DELETE FROM flats
+            WHERE id = ? AND author_username = ?
+            """;
+
+        try (PreparedStatement st = connection.prepareStatement(query)) {
+            st.setLong(1, id);
+            st.setString(2, username);
+
+            int affectedRows = st.executeUpdate();
+
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            if (recoverSchemaIfNeeded(e)) {
+                return false;
+            }
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public synchronized Vector<Flat> read_from_database() {
         if (!isConnected()) {
             logger.warn("База данных недоступна, возвращается пустая коллекция");
             return new Vector<>();
@@ -347,13 +404,16 @@ public class DatabaseManager {
             }
 
         } catch (SQLException e) {
+            if (recoverSchemaIfNeeded(e)) {
+                return new Vector<>();
+            }
             e.printStackTrace();
         }
 
         return flats;
     }
 
-    public Flat updateFlat(long id, FlatData data, String username) {
+    public synchronized Flat updateFlat(long id, FlatData data, String username) {
         if (!isConnected()) {
             return null;
         }
@@ -434,6 +494,9 @@ public class DatabaseManager {
                 return buildFlatFromResultSet(rs);
             }
         } catch (SQLException e) {
+            if (recoverSchemaIfNeeded(e)) {
+                return null;
+            }
             e.printStackTrace();
             return null;
         }
@@ -480,7 +543,7 @@ public class DatabaseManager {
         return flat;
     }
 
-    public boolean saveCollection(Collection<Flat> collection) {
+    public synchronized boolean saveCollection(Collection<Flat> collection) {
         if (!isConnected()) {
             logger.warn("Коллекция не сохранена: нет подключения к базе данных");
             return false;
@@ -594,6 +657,93 @@ public class DatabaseManager {
                 e.printStackTrace();
             }
         }
+    }
+
+    public synchronized List<Long> clearUserFlats(String username) {
+        List<Long> removedIds = new ArrayList<>();
+
+        if (!isConnected()) {
+            logger.warn("Clear невозможен: нет подключения к базе данных");
+            return removedIds;
+        }
+
+        if (username == null || username.isBlank()) {
+            return removedIds;
+        }
+
+        String query = """
+            DELETE FROM flats
+            WHERE author_username = ?
+            RETURNING id
+            """;
+
+        try (PreparedStatement st = connection.prepareStatement(query)) {
+            st.setString(1, username);
+
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    removedIds.add(rs.getLong("id"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return removedIds;
+    }
+
+    public synchronized List<Long> removeUserFlatsByIds(Collection<Long> ids, String username) {
+        List<Long> removedIds = new ArrayList<>();
+
+        if (!isConnected()) {
+            logger.warn("Удаление невозможно: нет подключения к базе данных");
+            return removedIds;
+        }
+
+        if (ids == null || ids.isEmpty()) {
+            return removedIds;
+        }
+
+        if (username == null || username.isBlank()) {
+            return removedIds;
+        }
+
+        String query = """
+            DELETE FROM flats
+            WHERE id = ? AND author_username = ?
+            RETURNING id
+            """;
+
+        try {
+            boolean previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement st = connection.prepareStatement(query)) {
+                for (Long id : ids) {
+                    st.setLong(1, id);
+                    st.setString(2, username);
+
+                    try (ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) {
+                            removedIds.add(rs.getLong("id"));
+                        }
+                    }
+                }
+            }
+
+            connection.commit();
+            connection.setAutoCommit(previousAutoCommit);
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+            recoverSchemaIfNeeded(e);
+            e.printStackTrace();
+        }
+
+        return removedIds;
     }
 }
 

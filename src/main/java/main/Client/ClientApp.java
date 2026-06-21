@@ -141,11 +141,15 @@ public class ClientApp {
     }
 
     private void sendCommand(String text, String[] str) {
+        if (requiresAuthorization(str[0]) && !networkClient.isAuthorized()) {
+            System.out.println("Сначала нужно авторизоваться через login или register!");
+            return;
+        }
         CommandRequest request = buildRequest(text, str);
+
         if (request == null) {
             return;
         }
-
         List<CommandResponse> responses = networkClient.send(request);
         if (responses.isEmpty()) {
             System.out.println("Сервер недоступен.");
@@ -154,6 +158,11 @@ public class ClientApp {
         }
         connectionStatus = true;
         responses.forEach(this::printResponse);
+    }
+
+    private boolean requiresAuthorization(String commandName) {
+        return !commandName.equals("login")
+                && !commandName.equals("register");
     }
 
     private CommandRequest buildRequest(String text, String[] str) {
@@ -306,6 +315,10 @@ public class ClientApp {
     }
 
     private void executeScript(String[] str) {
+        if (!networkClient.isAuthorized()) {
+            System.out.println("Сначала нужно авторизоваться через login или register!");
+            return;
+        }
         if (str.length != 2) {
             System.out.println("Не задано название файла!");
             return;

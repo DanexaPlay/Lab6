@@ -6259,3 +6259,74 @@ java.lang.NullPointerException: Cannot invoke "main.BasicClasses.Furnish.name()"
 [2026-06-20 21:46:38] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
 [2026-06-20 21:46:38] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
 [2026-06-20 21:46:40] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:57336
+[2026-06-20 21:56:13] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-20 21:56:19] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-20 21:56:19] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-20 21:56:19] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-20 21:56:21] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:58618
+[2026-06-20 21:56:39] INFO  main.Client.ClientApp - Отправка скрипта на сервер, команд: 8
+[2026-06-20 21:56:59] INFO  main.Server.DatabaseManagment.DatabaseManager - Пользователь test2 авторизовался
+[2026-06-20 21:59:07] INFO  main.Server.Network.Server - Клиент отключился
+[2026-06-20 21:59:11] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:62609
+[2026-06-20 22:06:24] INFO  main.Server.Network.Server - Клиент отключился
+[2026-06-20 22:06:24] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-20 22:06:28] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-20 22:06:28] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-20 22:06:28] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-20 22:06:32] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:58560
+[2026-06-20 22:06:36] INFO  main.Server.DatabaseManagment.DatabaseManager - Пользователь test2 авторизовался
+[2026-06-20 22:06:55] INFO  main.Server.Network.Server - Клиент отключился
+[2026-06-20 22:06:58] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:56038
+[2026-06-20 22:07:01] INFO  main.Server.DatabaseManagment.DatabaseManager - Пользователь test авторизовался
+[2026-06-20 22:07:10] INFO  main.Server.Network.Server - Клиент отключился
+[2026-06-20 22:07:10] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-21 00:09:24] WARN  main.Server.ServerMain - База данных недоступна, коллекция будет создана пустой
+[2026-06-21 00:09:24] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-21 00:09:28] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-21 00:09:44] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-21 00:09:44] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-21 00:09:44] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-21 00:09:50] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:54026
+[2026-06-21 00:10:04] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:53753
+[2026-06-21 00:10:08] INFO  main.Server.DatabaseManagment.DatabaseManager - Пользователь test авторизовался
+[2026-06-21 00:10:11] INFO  main.Server.DatabaseManagment.DatabaseManager - Пользователь test авторизовался
+[2026-06-21 00:10:19] INFO  main.Server.Network.Server - Клиент отключился
+[2026-06-21 00:10:19] INFO  main.Server.Network.Server - Клиент отключился
+[2026-06-21 00:10:19] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-21 23:21:22] WARN  main.Server.ServerMain - База данных недоступна, коллекция будет создана пустой
+[2026-06-21 23:21:23] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-21 23:21:28] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-21 23:21:51] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-21 23:21:51] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-21 23:21:51] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-21 23:21:59] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:56015
+[2026-06-21 23:22:04] INFO  main.Server.DatabaseManagment.DatabaseManager - Пользователь test авторизовался
+[2026-06-21 23:22:13] INFO  main.Client.ClientApp - Отправка скрипта на сервер, команд: 9
+[2026-06-21 23:22:13] INFO  main.Server.Commands.ExecuteScriptCommand - Выполнение скрипта, команд: 9
+[2026-06-21 23:22:13] INFO  main.Server.DatabaseManagment.DatabaseManager - Добавлен новый объект Flat с id 2
+[2026-06-21 23:26:58] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-21 23:27:05] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-21 23:27:05] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-21 23:27:05] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-21 23:27:08] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:59976
+[2026-06-21 23:27:17] INFO  main.Server.DatabaseManagment.DatabaseManager - Пользователь test авторизовался
+[2026-06-21 23:27:21] INFO  main.Client.ClientApp - Отправка скрипта на сервер, команд: 9
+[2026-06-21 23:27:21] INFO  main.Server.Commands.ExecuteScriptCommand - Выполнение скрипта, команд: 9
+[2026-06-21 23:27:22] INFO  main.Server.DatabaseManagment.DatabaseManager - Добавлен новый объект Flat с id 2
+[2026-06-21 23:32:47] INFO  main.Client.ClientApp - Отправка скрипта на сервер, команд: 8
+[2026-06-21 23:32:47] INFO  main.Server.Commands.ExecuteScriptCommand - Выполнение скрипта, команд: 8
+[2026-06-21 23:35:14] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-21 23:35:20] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-21 23:35:20] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-21 23:35:20] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-21 23:35:23] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:50574
+[2026-06-21 23:45:35] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-21 23:45:41] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-21 23:45:41] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-21 23:45:41] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-21 23:45:44] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:59515
+[2026-06-21 23:45:48] INFO  main.Server.DatabaseManagment.DatabaseManager - Пользователь test авторизовался
+[2026-06-21 23:46:17] WARN  main.Server.DatabaseManagment.DatabaseManager - Схема БД отсутствует или повреждена. Пересоздаю таблицы...
+[2026-06-21 23:46:17] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-21 23:46:17] WARN  main.Server.DatabaseManagment.DatabaseManager - Схема БД пересоздана. Команду нужно повторить.
+[2026-06-21 23:46:54] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции

@@ -17,6 +17,9 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
 public class Server {
     private static final Logger logger = LogManager.getLogger(Server.class);
@@ -26,6 +29,8 @@ public class Server {
     private boolean running = true;
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
+    private final ExecutorService requestExecutor = Executors.newFixedThreadPool(4);
+    private final ForkJoinPool responseExecutor = new ForkJoinPool();
 
     public Server(String host, int port, CommandProcessor commandProcessor) {
         this.host = host;
@@ -57,7 +62,7 @@ public class Server {
                         acceptClient(key);
                     }
                     if (key.isReadable()) {
-                        readRequest(key);
+                        startReadThread(key);
                     }
                     if (!key.isValid()) {
                         continue;
@@ -76,6 +81,79 @@ public class Server {
         } finally {
             close();
         }
+    }
+
+    private void submitRequestProcessing(
+            SelectionKey key,
+            ClientConnection connection,
+            CommandRequest request
+    ) {
+        requestExecutor.submit(() -> {
+            try {
+                List<CommandResponse> responses = commandProcessor.process(request, connection);
+                submitResponseSending(key, connection, responses);
+            } catch (Exception e) {
+                e.printStackTrace();
+                submitResponseSending(key, connection, List.of(CommandResponse.fail("Ошибка при обработке запроса!"))
+                );
+            }
+        });
+    }
+
+    private void submitResponseSending(
+            SelectionKey key,
+            ClientConnection connection,
+            List<CommandResponse> responses
+    ) {
+        responseExecutor.execute(() -> {
+            try {
+                for (CommandResponse response : responses) {
+                    connection.getAnswers().add(FrameManager.toBuffer(response));
+                }
+                enableInterestOps(key, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+            } catch (Exception e) {
+                e.printStackTrace();
+                enableInterestOps(key, SelectionKey.OP_READ);
+            }
+        });
+    }
+
+    private void startReadThread(SelectionKey key) {
+        disableInterestOps(key, SelectionKey.OP_READ);
+
+        new Thread(() -> readRequest(key), "request-reader").start();
+    }
+
+    private void enableInterestOps(SelectionKey key, int ops) {
+        if (key == null || !key.isValid()) {
+            return;
+        }
+
+        synchronized (key) {
+            if (!key.isValid()) {
+                return;
+            }
+
+            key.interestOps(key.interestOps() | ops);
+        }
+
+        selector.wakeup();
+    }
+
+    private void disableInterestOps(SelectionKey key, int ops) {
+        if (key == null || !key.isValid()) {
+            return;
+        }
+
+        synchronized (key) {
+            if (!key.isValid()) {
+                return;
+            }
+
+            key.interestOps(key.interestOps() & ~ops);
+        }
+
+        selector.wakeup();
     }
 
     private void acceptClient(SelectionKey key) throws IOException {
@@ -103,6 +181,7 @@ public class Server {
                     return;
                 }
                 if (connection.getLengthBuffer().hasRemaining()) {
+                    enableInterestOps(key, SelectionKey.OP_READ);
                     return;
                 }
                 connection.getLengthBuffer().flip();
@@ -120,6 +199,7 @@ public class Server {
                 return;
             }
             if (connection.getDataBuffer().hasRemaining()) {
+                enableInterestOps(key, SelectionKey.OP_READ);
                 return;
             }
 
@@ -129,25 +209,20 @@ public class Server {
             connection.clearRead();
 
             Object object = SerializationManager.deserialize(data);
-            if (!(object instanceof CommandRequest)) {
-                connection.getAnswers().add(FrameManager.toBuffer(CommandResponse.fail("Неверный запрос!")));
-            } else {
-                if (((CommandRequest) object).hasCredentials() || ((CommandRequest) object).getType() == CommandType.LOGIN|| ((CommandRequest) object).getType() == CommandType.REGISTER || ((CommandRequest) object).getType() == CommandType.PING) {
-                    List<CommandResponse> responses = commandProcessor.process((CommandRequest) object);
-                    for (CommandResponse response : responses) {
-                        connection.getAnswers().add(FrameManager.toBuffer(response));
-                    }
-                }
-                else {
-                    connection.getAnswers().add(FrameManager.toBuffer(CommandResponse.fail("Вы не авторизованы! Используйте login или register")));
-                    }
-                }
-            key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+            if (!(object instanceof CommandRequest request)) {
+                connection.clearRead();
+                submitResponseSending(key, connection, List.of(CommandResponse.fail("Неверный запрос!"))
+                );
+                return;
+            }
+
+            connection.clearRead();
+            submitRequestProcessing(key, connection, request);
         } catch (Exception e) {
             logger.error("Ошибка обработки запроса", e);
             try {
                 connection.getAnswers().add(FrameManager.toBuffer(CommandResponse.fail("Не получилось обработать запрос.")));
-                key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                enableInterestOps(key, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
             } catch (Exception ignored) {
                 disconnect(key);
             }
@@ -174,6 +249,10 @@ public class Server {
     }
 
     private void disconnect(SelectionKey key) {
+        ClientConnection connection = (ClientConnection) key.attachment();
+        if (connection != null) {
+            commandProcessor.logout(connection);
+        }
         try {
             key.channel().close();
         } catch (IOException ignored) {
@@ -204,5 +283,9 @@ public class Server {
             }
         } catch (IOException ignored) {
         }
+    }
+
+    public void shutdown() {
+        requestExecutor.shutdownNow();
     }
 }
