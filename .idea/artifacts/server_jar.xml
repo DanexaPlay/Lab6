@@ -25,6 +25,8 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/../xstream-1.4.21/lib/xstream-jmh-1.4.21.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../xstream-1.4.21/lib/xstream-benchmark-1.4.21.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$USER_HOME$/Downloads/apache-log4j-2.3.2-bin/log4j-core-2.3.2.jar" path-in-jar="/" />
+      <element id="library" level="project" name="postgresql-42.7.11" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/postgresql-42.7.11.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

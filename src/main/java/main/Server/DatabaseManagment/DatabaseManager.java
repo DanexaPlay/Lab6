@@ -18,20 +18,26 @@ import java.util.*;
 
 public class DatabaseManager {
     private static final Logger logger = LogManager.getLogger(DatabaseManager.class);
-    private final String url = "jdbc:postgresql://localhost:15432/studs";
     private Connection connection;
     private FlatFactory flatFactory = new FlatFactory();
 
     public DatabaseManager() {
         try {
             Properties info = new Properties();
-            info.load(new FileInputStream("src/main/java/main/Server/db.cfg"));
+            info.load(new FileInputStream("db.cfg"));
+            String url = info.getProperty("url").replace("\uFEFF", "");
+            url = url.trim();
             connection = DriverManager.getConnection(url, info);
             logger.info("База данных подключена");
             System.out.println("Успешное подключение к базе данных");
             initializeTables();
         } catch (SQLException e) {
             this.connection = null;
+            System.out.println("Не удалось подключиться к БД");
+            System.out.println("SQLState = " + e.getSQLState());
+            System.out.println("ErrorCode = " + e.getErrorCode());
+            System.out.println("Message = " + e.getMessage());
+            e.printStackTrace();
             System.out.println("Не удалось подключиться к базе данных!");
         } catch (IOException e2) {
             this.connection = null;
@@ -119,7 +125,7 @@ public class DatabaseManager {
         if (!isMissingSchemaException(e)) {
             return false;
         }
-        logger.warn("Схема БД отсутствует или повреждена. Пересоздаю таблицы...");
+        logger.warn("Схема БД отсутствует или повреждена. Повторная инициализация");
         initializeTables();
         logger.warn("Схема БД пересоздана. Команду нужно повторить.");
         return true;

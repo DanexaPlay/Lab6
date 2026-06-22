@@ -141,6 +141,11 @@ public class ClientApp {
     }
 
     private void sendCommand(String text, String[] str) {
+        if (!networkClient.isConnected()) {
+            System.out.println("Сначала подключитесь к серверу через connect!");
+            return;
+        }
+
         if (requiresAuthorization(str[0]) && !networkClient.isAuthorized()) {
             System.out.println("Сначала нужно авторизоваться через login или register!");
             return;
@@ -315,10 +320,6 @@ public class ClientApp {
     }
 
     private void executeScript(String[] str) {
-        if (!networkClient.isAuthorized()) {
-            System.out.println("Сначала нужно авторизоваться через login или register!");
-            return;
-        }
         if (str.length != 2) {
             System.out.println("Не задано название файла!");
             return;
@@ -330,7 +331,13 @@ public class ClientApp {
             return;
         }
 
+        if (!networkClient.isAuthorized()) {
+            System.out.println("Сначала нужно авторизоваться через login или register!");
+            return;
+        }
+
         String fileName = str[1];
+
         if (openedScripts.contains(fileName)) {
             System.out.println("Рекурсивный вызов скрипта запрещён!");
             return;
@@ -338,71 +345,100 @@ public class ClientApp {
 
         Scanner oldInput = input;
         boolean oldScriptMode = scriptMode;
-        List<CommandRequest> requests = new ArrayList<>();
+
         try {
             input = new Scanner(new File(fileName));
             scriptMode = true;
             openedScripts.add(fileName);
+
             ConsoleReader reader = new ConsoleReader(input, this::checkServerBeforeInput);
 
+            int lineNumber = 0;
+
             while (running && input.hasNextLine()) {
+                lineNumber++;
+
                 String text = normalize(input.nextLine());
                 System.out.println(text);
+
                 if (text.isEmpty()) {
                     continue;
                 }
 
                 String[] line = text.split(" ");
-                if (line[0].equals("execute_script")) {
-                    System.out.println("Рекурсивный вызов скрипта запрещён!");
-                    continue;
-                }
-                if (line[0].equals("exit")) {
-                    break;
-                }
-                if (line[0].equals("help")) {
-                    requests.add(new CommandRequest(main.Common.CommandType.HELP, null));
-                    continue;
-                }
-                if (localCommands.containsKey(line[0])) {
-                    System.out.println("Команда " + line[0] + " не выполняется из скрипта.");
+                String commandName = line[0];
+
+                if (commandName.equals("execute_script")) {
+                    System.out.println("Строка " + lineNumber + ": рекурсивный вызов скрипта запрещён!");
                     continue;
                 }
 
+                if (commandName.equals("exit")) {
+                    break;
+                }
+
+                if (commandName.equals("save")) {
+                    System.out.println("Строка " + lineNumber + ": команда save доступна только на сервере!");
+                    continue;
+                }
+
+                if (commandName.equals("connect")
+                        || commandName.equals("reconnect")
+                        || commandName.equals("status")
+                        || commandName.equals("set_host")
+                        || commandName.equals("set_port")
+                        || commandName.equals("helios")) {
+                    System.out.println("Строка " + lineNumber + ": команда " + commandName + " не выполняется из скрипта.");
+                    continue;
+                }
+
+                CommandRequest request;
+
                 try {
-                    requests.add(commandManager.build(line, reader));
+                    if (commandName.equals("help")) {
+                        request = new CommandRequest(main.Common.CommandType.HELP, null);
+                    } else {
+                        request = commandManager.build(line, reader);
+                    }
                 } catch (NumberFormatException e) {
-                    System.out.println("Неверный аргумент!");
+                    System.out.println("Строка " + lineNumber + ": неверный аргумент!");
+                    continue;
                 } catch (IllegalArgumentException e) {
-                    System.out.println(e.getMessage());
+                    System.out.println("Строка " + lineNumber + ": " + e.getMessage());
+                    continue;
+                } catch (InputCancelledException e) {
+                    System.out.println("Строка " + lineNumber + ": " + e.getMessage());
+                    connectionStatus = false;
+                    break;
+                }
+
+                if (request == null) {
+                    continue;
+                }
+
+                List responses = networkClient.send(request);
+
+                if (responses.isEmpty()) {
+                    System.out.println("Строка " + lineNumber + ": сервер недоступен.");
+                    connectionStatus = false;
+                    break;
+                }
+
+                connectionStatus = true;
+
+                for (Object responseObject : responses) {
+                    if (responseObject instanceof CommandResponse response) {
+                        printResponse(response);
+                    }
                 }
             }
         } catch (FileNotFoundException e) {
             System.out.println("Файл не найден!");
-            return;
-        } catch (InputCancelledException e) {
-            System.out.println(e.getMessage());
-            connectionStatus = false;
-            return;
         } finally {
             openedScripts.remove(fileName);
             input = oldInput;
             scriptMode = oldScriptMode;
         }
-
-        if (requests.isEmpty()) {
-            return;
-        }
-
-        logger.info("Отправка скрипта на сервер, команд: {}", requests.size());
-        List<CommandResponse> responses = networkClient.send(new CommandRequest(main.Common.CommandType.EXECUTE_SCRIPT, requests));
-        if (responses.isEmpty()) {
-            System.out.println("Сервер недоступен.");
-            connectionStatus = false;
-            return;
-        }
-        connectionStatus = true;
-        responses.forEach(this::printResponse);
     }
 
     private void printLocalHelp() {

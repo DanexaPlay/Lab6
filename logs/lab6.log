@@ -6330,3 +6330,42 @@ java.lang.NullPointerException: Cannot invoke "main.BasicClasses.Furnish.name()"
 [2026-06-21 23:46:17] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
 [2026-06-21 23:46:17] WARN  main.Server.DatabaseManagment.DatabaseManager - Схема БД пересоздана. Команду нужно повторить.
 [2026-06-21 23:46:54] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-21 23:55:26] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-21 23:55:26] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-21 23:55:26] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-21 23:55:30] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 15:32:55] WARN  main.Server.ServerMain - База данных недоступна, коллекция будет создана пустой
+[2026-06-22 15:32:55] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-22 15:32:57] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:59034
+[2026-06-22 15:33:11] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 15:33:16] WARN  main.Server.ServerMain - База данных недоступна, коллекция будет создана пустой
+[2026-06-22 15:33:16] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-22 15:33:17] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:61096
+[2026-06-22 15:36:20] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 15:36:25] WARN  main.Server.ServerMain - База данных недоступна, коллекция будет создана пустой
+[2026-06-22 15:36:26] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-22 15:36:26] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:64619
+[2026-06-22 15:39:32] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 15:39:38] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-22 15:39:38] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-22 15:39:38] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-22 15:39:39] INFO  main.Server.Network.Server - Клиент подключился: /127.0.0.1:54261
+[2026-06-22 15:40:16] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 15:40:22] WARN  main.Server.ServerMain - База данных недоступна, коллекция будет создана пустой
+[2026-06-22 15:40:22] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-22 15:44:30] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 15:44:37] WARN  main.Server.ServerMain - База данных недоступна, коллекция будет создана пустой
+[2026-06-22 15:44:37] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-22 15:45:37] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 15:45:40] WARN  main.Server.ServerMain - База данных недоступна, коллекция будет создана пустой
+[2026-06-22 15:45:40] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-22 15:46:51] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 15:46:55] WARN  main.Server.ServerMain - База данных недоступна, коллекция будет создана пустой
+[2026-06-22 15:46:55] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-22 15:47:18] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 15:47:21] INFO  main.Server.DatabaseManagment.DatabaseManager - База данных подключена
+[2026-06-22 15:47:21] INFO  main.Server.DatabaseManagment.DatabaseManager - Таблицы базы данных успешно проверены/созданы
+[2026-06-22 15:47:21] INFO  main.Server.Network.Server - Сервер запущен: 0.0.0.0:8731
+[2026-06-22 16:52:39] INFO  main.Server.ServerMain - Завершение JVM, сохранение коллекции
+[2026-06-22 16:53:46] INFO  main.Client.ClientApp - Отправка скрипта на сервер, команд: 8
+[2026-06-22 17:01:51] INFO  main.Client.ClientApp - Отправка скрипта на сервер, команд: 8
