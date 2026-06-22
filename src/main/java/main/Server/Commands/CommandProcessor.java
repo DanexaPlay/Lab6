@@ -25,7 +25,7 @@ public class CommandProcessor {
     private final FileManager fileManager;
     private final Map<CommandType, ServerCommand> commands = new HashMap<>();
     private final DatabaseManager databaseManager;
-    private final ActiveUserManager activeUserManager = new ActiveUserManager();
+    private final ActiveUserManager activeUserManager = ActiveUserManager.getInstance();
 
     public CommandProcessor(CollectionManager collectionManager, FileManager fileManager) {
         this.collectionManager = collectionManager;
